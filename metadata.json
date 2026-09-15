@@ -1,0 +1,6 @@
+{
+  "name": "24/7 Streamer",
+  "description": "Continuous 24/7 RTMP/RTMPS live video streaming from prerecorded videos to YouTube, Facebook, and custom RTMP servers with AdMob rewarded ad streaming-time wallet.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
