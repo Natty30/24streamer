@@ -10,7 +10,18 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
+    <!-- Remove Privacy Sandbox AdServices permissions to prevent measurement service binding errors on devices/emulators without AdServices -->
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION"
+        tools:node="remove"
+        tools:ignore="RemoveIfNotPresent" />
+    <uses-permission
+        android:name="android.permission.ACCESS_ADSERVICES_TOPICS"
+        tools:node="remove"
+        tools:ignore="RemoveIfNotPresent" />
+
     <application
+        android:name=".StreamerApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -20,10 +31,10 @@
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
         android:theme="@style/Theme.MyApplication">
-        <!-- Google Mobile Ads / AdMob App ID for testing -->
+        <!-- Google Mobile Ads / AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-1626170613708164~1938746040" />
 
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_INITIALIZATION"
@@ -31,6 +42,16 @@
         <meta-data
             android:name="com.google.android.gms.ads.flag.OPTIMIZE_AD_LOADING"
             android:value="true" />
+
+        <!-- Remove AdServices config property and extension library to prevent measurement service binding attempts -->
+        <property
+            android:name="android.adservices.AD_SERVICES_CONFIG"
+            tools:node="remove"
+            tools:ignore="RemoveIfNotPresent" />
+        <uses-library
+            android:name="android.ext.adservices"
+            tools:node="remove"
+            tools:ignore="RemoveIfNotPresent" />
 
         <!-- Disable Analytics / Ad Measurement to eliminate measurement service binding calls -->
         <meta-data

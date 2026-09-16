@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.PowerManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ads.InterstitialAdManager
 import com.example.ads.RewardedAdManager
 import com.example.media.VideoInfo
 import com.example.media.VideoMetadataUtil
@@ -63,6 +64,7 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     private val credentialStore = SecureCredentialStore(application)
     val rewardedAdManager = RewardedAdManager(application)
+    val interstitialAdManager = InterstitialAdManager(application)
 
     private val _uiState = MutableStateFlow(
         StreamUiState(
@@ -232,6 +234,39 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearAdMessages() {
         _uiState.value = _uiState.value.copy(adErrorMessage = null, adRewardMessage = null)
+    }
+
+    fun onConsentGathered() {
+        rewardedAdManager.loadAd()
+        interstitialAdManager.loadAd()
+    }
+
+    /**
+     * Shows an interstitial ad ONLY at appropriate transitions (e.g. after stream ends).
+     * Strictly verifies that livestream is NOT active before showing.
+     */
+    fun showInterstitialIfAppropriate(activity: Activity) {
+        val isStreaming = uiState.value.streamStatus is StreamStatus.Live ||
+                uiState.value.streamStatus is StreamStatus.Connecting ||
+                uiState.value.streamStatus is StreamStatus.Reconnecting
+
+        if (!isStreaming) {
+            interstitialAdManager.showAdIfAvailable(
+                activity = activity,
+                isStreamActive = false
+            )
+        }
+    }
+
+    fun resetAllStoredData() {
+        credentialStore.clearAllStoredData()
+        _uiState.value = _uiState.value.copy(
+            streamKey = "",
+            serverUrl = DestinationType.YOUTUBE.defaultUrl,
+            destination = DestinationType.YOUTUBE,
+            availableStreamingTimeSec = 0L,
+            validationError = null
+        )
     }
 
     fun retryLoadAd() {

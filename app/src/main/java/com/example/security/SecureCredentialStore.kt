@@ -215,4 +215,8 @@ class SecureCredentialStore(context: Context) {
         saveStreamingTimeRemainingSeconds(updated)
         return updated
     }
+
+    fun clearAllStoredData() {
+        prefs.edit().clear().apply()
+    }
 }

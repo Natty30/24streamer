@@ -44,6 +44,7 @@ googleid = "1.1.1"
 media3 = "1.5.1"
 rootEncoder = "2.4.5"
 playServicesAds = "23.6.0"
+userMessagingPlatform = "3.1.0"
 
 
 [libraries]
@@ -106,6 +107,7 @@ androidx-media3-ui = { group = "androidx.media3", name = "media3-ui", version.re
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3" }
 root-encoder = { group = "com.github.pedroSG94.RootEncoder", name = "library", version.ref = "rootEncoder" }
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "userMessagingPlatform" }
 
 
 [plugins]

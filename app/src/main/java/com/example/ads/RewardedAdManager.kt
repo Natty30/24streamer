@@ -38,10 +38,6 @@ class RewardedAdManager(private val context: Context) {
 
     init {
         try {
-            val reqConfig = RequestConfiguration.Builder()
-                .setTestDeviceIds(listOf(AdRequest.DEVICE_ID_EMULATOR))
-                .build()
-            MobileAds.setRequestConfiguration(reqConfig)
             MobileAds.initialize(context) {
                 loadAd()
             }

@@ -21,16 +21,26 @@ android {
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
+    buildConfigField("String", "ADMOB_REWARDED_AD_UNIT_ID", "\"ca-app-pub-1626170613708164/8885007355\"")
+    buildConfigField("String", "ADMOB_BANNER_AD_UNIT_ID", "\"ca-app-pub-1626170613708164/3896851663\"")
+    buildConfigField("String", "ADMOB_INTERSTITIAL_AD_UNIT_ID", "\"ca-app-pub-1626170613708164/8079639254\"")
   }
 
   signingConfigs {
     create("release") {
       val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val targetFile = file(keystorePath)
+      if (targetFile.exists()) {
+        storeFile = targetFile
+        storePassword = System.getenv("STORE_PASSWORD") ?: "android"
+        keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
+        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+      } else {
+        storeFile = file("${rootDir}/debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+      }
     }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")
@@ -97,6 +107,7 @@ dependencies {
   implementation(libs.androidx.media3.common)
   implementation(libs.root.encoder)
   implementation(libs.play.services.ads)
+  implementation(libs.user.messaging.platform)
   // implementation(libs.androidx.datastore.preferences)
   implementation(libs.androidx.lifecycle.runtime.compose)
   implementation(libs.androidx.lifecycle.runtime.ktx)

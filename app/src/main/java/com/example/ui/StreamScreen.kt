@@ -46,9 +46,12 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import com.example.privacy.ConsentManager
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
@@ -76,6 +79,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -99,6 +103,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.example.ads.BannerAdView
 import com.example.media.VideoMetadataUtil
 import com.example.service.StreamStatus
 import com.example.ui.theme.StreamAmber
@@ -117,11 +122,13 @@ import com.example.ui.theme.StreamTextSecondary
 @Composable
 fun StreamScreen(
     viewModel: StreamViewModel,
+    consentManager: ConsentManager,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val activity = context.findActivity()
     val uiState by viewModel.uiState.collectAsState()
+    var showPrivacyDialog by remember { mutableStateOf(false) }
 
     val filePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -141,9 +148,38 @@ fun StreamScreen(
             uiState.streamStatus is StreamStatus.Connecting ||
             uiState.streamStatus is StreamStatus.Reconnecting
 
+    val previousStreamStatus = remember { mutableStateOf(uiState.streamStatus) }
+    LaunchedEffect(uiState.streamStatus) {
+        val wasStreaming = previousStreamStatus.value is StreamStatus.Live ||
+                previousStreamStatus.value is StreamStatus.Connecting ||
+                previousStreamStatus.value is StreamStatus.Reconnecting
+        val isNowStopped = uiState.streamStatus is StreamStatus.Idle ||
+                uiState.streamStatus is StreamStatus.Stopped ||
+                uiState.streamStatus is StreamStatus.Error
+
+        if (wasStreaming && isNowStopped) {
+            // Natural transition: active livestream has ended, safe to present interstitial
+            activity?.let { act ->
+                viewModel.showInterstitialIfAppropriate(act)
+            }
+        }
+        previousStreamStatus.value = uiState.streamStatus
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = StreamDarkBackground,
+        bottomBar = {
+            Surface(
+                color = StreamDarkSurface,
+                tonalElevation = 4.dp,
+                border = androidx.compose.foundation.BorderStroke(1.dp, StreamDarkCardBorder)
+            ) {
+                BannerAdView(
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -179,6 +215,18 @@ fun StreamScreen(
                                 )
                             )
                         }
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { showPrivacyDialog = true },
+                        modifier = Modifier.testTag("privacy_policy_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Policy,
+                            contentDescription = "Settings and Privacy Policy",
+                            tint = StreamTextPrimary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -233,6 +281,34 @@ fun StreamScreen(
                 }
             )
 
+            // Copyright Compliance Notice
+            Card(
+                colors = CardDefaults.cardColors(containerColor = StreamDarkSurfaceVariant.copy(alpha = 0.6f)),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = StreamTextMuted,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Users are responsible for ensuring that they have the necessary rights and permissions to broadcast content streamed using this application.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = StreamTextSecondary,
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        )
+                    )
+                }
+            }
+
             // 3. Streaming Time & Rewarded Ad Wallet Card
             StreamingTimeCard(
                 uiState = uiState,
@@ -277,8 +353,37 @@ fun StreamScreen(
                 onStop = { viewModel.stopStream(context) }
             )
 
+            TextButton(
+                onClick = { showPrivacyDialog = true },
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .testTag("footer_privacy_policy_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Policy,
+                    contentDescription = null,
+                    tint = StreamElectricBlue,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Settings → Privacy Policy & Compliance",
+                    color = StreamElectricBlue,
+                    fontSize = 12.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    if (showPrivacyDialog) {
+        PrivacyPolicyDialog(
+            activity = activity,
+            consentManager = consentManager,
+            onDismiss = { showPrivacyDialog = false },
+            onResetData = { viewModel.resetAllStoredData() }
+        )
     }
 }
 

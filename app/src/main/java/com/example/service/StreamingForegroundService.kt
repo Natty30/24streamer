@@ -98,7 +98,7 @@ class StreamingForegroundService : Service() {
                 _streamingTimeRemainingSec.value = newRemaining
                 if (_streamStatus.value is StreamStatus.Live) {
                     val remStr = formatTimeRemaining(newRemaining)
-                    updateNotification("🔴 Live — $currentDestination", "⏱ Remaining: $remStr")
+                    updateNotification("🔴 Live streaming", "Time remaining: $remStr")
                 }
             }
             ACTION_START -> {
@@ -187,17 +187,19 @@ class StreamingForegroundService : Service() {
                     when (status) {
                         VideoExtractorStreamer.Status.CONNECTING -> {
                             _streamStatus.value = StreamStatus.Connecting
-                            updateNotification("Connecting...", "Connecting to $currentDestination")
+                            val remStr = formatTimeRemaining(_streamingTimeRemainingSec.value)
+                            updateNotification("Connecting...", "Time remaining: $remStr")
                         }
                         VideoExtractorStreamer.Status.LIVE -> {
                             _streamStatus.value = StreamStatus.Live(0L)
                             startTimeTicker()
                             val remStr = formatTimeRemaining(_streamingTimeRemainingSec.value)
-                            updateNotification("🔴 Live — $currentDestination", "⏱ Remaining: $remStr | $currentVideoName")
+                            updateNotification("🔴 Live streaming", "Time remaining: $remStr")
                         }
                         VideoExtractorStreamer.Status.RECONNECTING -> {
                             _streamStatus.value = StreamStatus.Reconnecting(1)
-                            updateNotification("Reconnecting...", "Attempting to reconnect to $currentDestination")
+                            val remStr = formatTimeRemaining(_streamingTimeRemainingSec.value)
+                            updateNotification("Reconnecting...", "Time remaining: $remStr")
                         }
                         VideoExtractorStreamer.Status.STOPPED -> {
                             stopStreamingInternal(isExpired = false)
@@ -219,14 +221,8 @@ class StreamingForegroundService : Service() {
                         loopsCompleted = metrics.loopsCompleted
                     )
                     _streamStatus.value = StreamStatus.Live(metrics.durationMs)
-                    val durationStr = VideoMetadataUtil.formatDuration(metrics.durationMs)
                     val remStr = formatTimeRemaining(_streamingTimeRemainingSec.value)
-                    val subtext = if (metrics.loopsCompleted > 0) {
-                        "⏱ $remStr | $durationStr (Loop #${metrics.loopsCompleted + 1})"
-                    } else {
-                        "⏱ $remStr | $durationStr"
-                    }
-                    updateNotification("🔴 Live — $currentDestination", subtext)
+                    updateNotification("🔴 Live streaming", "Time remaining: $remStr")
                 }
             }
         )
@@ -286,7 +282,7 @@ class StreamingForegroundService : Service() {
         stopSelf()
     }
 
-    private fun buildNotification(title: String, text: String): Notification {
+    private fun buildNotification(statusTitle: String, detailsText: String): Notification {
         val openIntent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
@@ -308,11 +304,17 @@ class StreamingForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(text)
+            .setContentTitle("24/7 Streamer")
+            .setContentText("$statusTitle • $detailsText")
+            .setSubText(statusTitle)
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .setBigContentTitle("24/7 Streamer")
+                    .bigText("$statusTitle\n$detailsText\nDestination: $currentDestination")
+            )
             .setSmallIcon(android.R.drawable.presence_video_online)
             .setContentIntent(openPendingIntent)
-            .addAction(android.R.drawable.ic_media_pause, "STOP STREAM", stopPendingIntent)
+            .addAction(android.R.drawable.ic_menu_close_clear_cancel, "STOP STREAM", stopPendingIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -346,7 +348,13 @@ class StreamingForegroundService : Service() {
             }
 
             val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
-            wifiLock = wifiManager?.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "247Streamer::WifiLock")?.apply {
+            val wifiMode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                WifiManager.WIFI_MODE_FULL_LOW_LATENCY
+            } else {
+                @Suppress("DEPRECATION")
+                WifiManager.WIFI_MODE_FULL_HIGH_PERF
+            }
+            wifiLock = wifiManager?.createWifiLock(wifiMode, "247Streamer::WifiLock")?.apply {
                 acquire()
             }
         } catch (_: Exception) {}
