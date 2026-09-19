@@ -29,7 +29,8 @@ import com.google.android.gms.ads.LoadAdError
  */
 @Composable
 fun BannerAdView(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    canRequestAds: Boolean = true
 ) {
     val context = LocalContext.current
     var isAdLoaded by remember { mutableStateOf(false) }
@@ -49,8 +50,13 @@ fun BannerAdView(
                     Log.d("BannerAdView", "Banner ad failed to load: ${error.message} (code: ${error.code})")
                 }
             }
+        }
+    }
+
+    androidx.compose.runtime.LaunchedEffect(canRequestAds) {
+        if (canRequestAds) {
             try {
-                loadAd(AdRequest.Builder().build())
+                adView.loadAd(AdRequest.Builder().build())
             } catch (e: Exception) {
                 Log.w("BannerAdView", "Exception requesting banner ad", e)
             }

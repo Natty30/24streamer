@@ -12,7 +12,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.example.privacy.ConsentManager
@@ -31,14 +34,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 val consentManager = remember { ConsentManager(applicationContext) }
+                var canRequestAds by remember { mutableStateOf(consentManager.canRequestAds()) }
                 val notificationPermissionLauncher = rememberLauncherForActivityResult(
                     contract = ActivityResultContracts.RequestPermission()
                 ) { _ -> }
 
                 LaunchedEffect(Unit) {
                     // Gather privacy/GDPR consent before requesting ads
-                    consentManager.gatherConsent(this@MainActivity) { canRequestAds ->
-                        if (canRequestAds) {
+                    consentManager.gatherConsent(this@MainActivity) { allowed ->
+                        canRequestAds = allowed
+                        if (allowed) {
                             viewModel.onConsentGathered()
                         }
                     }
@@ -58,14 +63,10 @@ class MainActivity : ComponentActivity() {
                 StreamScreen(
                     viewModel = viewModel,
                     consentManager = consentManager,
+                    canRequestAds = canRequestAds,
                     modifier = Modifier.fillMaxSize()
                 )
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.checkBatteryOptimization()
     }
 }

@@ -1,6 +1,8 @@
 package com.example.ui
 
 import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Policy
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Security
@@ -152,6 +156,22 @@ fun PrivacyPolicyDialog(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
+                    // Public Web Link Button
+                    OutlinedButton(
+                        onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://natty30.github.io/24streamer/privacy-policy.html"))
+                                activity?.startActivity(intent)
+                            } catch (_: Exception) {}
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("open_web_privacy_policy_button"),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = StreamElectricBlue)
+                    ) {
+                        Icon(Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("View Public Web Privacy Policy")
+                    }
+
                     // Copyright Warning Card
                     Card(
                         colors = CardDefaults.cardColors(containerColor = StreamAmber.copy(alpha = 0.12f)),
@@ -180,7 +200,7 @@ fun PrivacyPolicyDialog(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Users are responsible for ensuring that they have the necessary rights and permissions to broadcast content streamed using this application. The application does not provide, host, or bundle third-party copyrighted media.",
+                                    text = "Users are solely responsible for ensuring they possess all necessary rights, licenses, and permissions for any video or audio broadcasted through this app. The app does not provide, host, or bundle third-party copyrighted media.",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = StreamTextPrimary,
                                         lineHeight = 16.sp
@@ -190,22 +210,38 @@ fun PrivacyPolicyDialog(
                         }
                     }
 
-                    // Section 1: AdMob & Advertising
+                    // Section 1: Overview & Developer Identity
                     PolicySection(
-                        title = "1. Google Mobile Ads (AdMob) & Advertising",
-                        icon = Icons.Default.Policy
+                        title = "1. Overview & Developer Identity",
+                        icon = Icons.Default.Info
                     ) {
                         Text(
-                            text = "• Rewarded Ads: The application utilizes the official Google Mobile Ads SDK to display rewarded advertisements. Watching a rewarded advertisement to completion grants +30 minutes of streaming time.\n\n" +
-                                    "• Data Processed: Google Mobile Ads SDK may collect and process device identifiers (e.g., Google Advertising ID), coarse location/IP address, and app interaction diagnostic telemetry strictly for ad serving, fraud prevention, and frequency capping.\n\n" +
-                                    "• Compliance: No rewards are ever granted for ad clicks or artificial engagement. Rewards are only unlocked upon receiving the verified completion callback from Google Mobile Ads SDK.",
+                            text = "• Application: 24/7 Streamer (Continuous RTMP/RTMPS Broadcast)\n" +
+                                    "• Developer: 24/7 Streamer Team\n" +
+                                    "• Privacy Contact: appmalume@gmail.com\n" +
+                                    "• Purpose: Enables broadcasters to stream pre-recorded video continuously to RTMP/RTMPS ingestion servers (such as YouTube Live, Facebook Live, Twitch, or custom RTMP endpoints).\n" +
+                                    "• No User Accounts: The application does NOT create, manage, or require user accounts. No registration or sign-in is required.",
                             style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
                         )
                     }
 
-                    // Section 2: Privacy Choices & Consent Management
+                    // Section 2: Advertising & Google AdMob
                     PolicySection(
-                        title = "2. User Consent & Privacy Rights (GDPR / CCPA)",
+                        title = "2. Google Mobile Ads (AdMob) & Advertising",
+                        icon = Icons.Default.Policy
+                    ) {
+                        Text(
+                            text = "• Rewarded Ads: Users may voluntarily choose to watch a rewarded video advertisement to receive +30 minutes of streaming time allowance. Rewards are credited solely upon verified completion callback from the Google Mobile Ads SDK. Ads are never auto-triggered without user action.\n\n" +
+                                    "• Banner & Interstitial Ads: The app may display non-intrusive banner advertisements at the bottom and interstitial ads at natural transitions (e.g. after a stream finishes). Interstitials are NEVER displayed while a livestream is running.\n\n" +
+                                    "• Data Processed by AdMob: The Google Mobile Ads SDK may process device identifiers (such as Google Advertising ID), IP address (for coarse geographic location and fraud prevention), and advertising diagnostic telemetry. All ad serving respects Google Play Families and Advertising policies.\n\n" +
+                                    "• No Artificial Clicks: The app never encourages artificial ad clicks or simulates ad interactions.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
+                        )
+                    }
+
+                    // Section 3: Privacy Choices & Consent Management
+                    PolicySection(
+                        title = "3. User Consent & Privacy Rights (GDPR / CCPA)",
                         icon = Icons.Default.CheckCircle
                     ) {
                         Text(
@@ -231,22 +267,36 @@ fun PrivacyPolicyDialog(
                         }
                     }
 
-                    // Section 3: Streaming Functionality & Direct Ingest
+                    // Section 4: Video Selection, Storage & Hardware Permissions
                     PolicySection(
-                        title = "3. Streaming Functionality & Foreground Service",
+                        title = "4. Device Hardware, Storage & Permissions",
                         icon = Icons.Default.Lock
                     ) {
                         Text(
-                            text = "• Direct Ingest: Video decoding and RTMP/RTMPS packetization occur strictly locally on your Android device. Video and audio packets are transmitted directly from your device to the RTMP/RTMPS server you specify (e.g., YouTube Live, Facebook Live, Twitch, or your custom server).\n\n" +
-                                    "• No Intermediary Servers: The application developer operates no proxy servers, intermediate relay services, or cloud recording databases. Your live stream content is never intercepted, stored, or viewed by the developer.\n\n" +
-                                    "• Foreground Service: In accordance with Android 14+ requirements, the streaming process operates via a user-initiated Foreground Service with a persistent notification containing live time remaining and a direct 'STOP STREAM' control.",
+                            text = "• Camera & Microphone: The application does NOT request, access, or utilize camera or microphone permissions or hardware.\n\n" +
+                                    "• Video & Storage Selection: The app utilizes Android's zero-permission system document picker (OpenDocument) to let users pick local media files. The app does NOT request broad external storage permissions (READ_EXTERNAL_STORAGE / READ_MEDIA_VIDEO).\n\n" +
+                                    "• Notifications: The POST_NOTIFICATIONS permission is used strictly to display an active Foreground Service status notification with remaining streaming time and an instant 'STOP STREAM' control.\n\n" +
+                                    "• Network & Wake Lock: INTERNET and ACCESS_NETWORK_STATE are used to transmit video packets to the RTMP endpoint and check connectivity. WAKE_LOCK prevents the CPU from sleeping while an active broadcast is in progress.",
                             style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
                         )
                     }
 
-                    // Section 4: Stream Key & Credential Security
+                    // Section 5: Streaming Functionality & Direct Ingest
                     PolicySection(
-                        title = "4. Stream Keys & On-Device Security",
+                        title = "5. Streaming Functionality & Foreground Service",
+                        icon = Icons.Default.Policy
+                    ) {
+                        Text(
+                            text = "• Direct Ingest: Video decoding and RTMP/RTMPS packetization occur strictly locally on your Android device. Video and audio packets are transmitted directly from your device to the RTMP/RTMPS server you specify (e.g., YouTube Live, Facebook Live, Twitch, or your custom server).\n\n" +
+                                    "• No Intermediary Servers: The application developer operates no proxy servers, intermediate relay services, or cloud recording databases. Your live stream content is never intercepted, stored, or viewed by the developer.\n\n" +
+                                    "• Foreground Service: In accordance with Android 14+ requirements, the streaming process operates via a user-initiated Foreground Service (FOREGROUND_SERVICE_DATA_SYNC) with a persistent notification containing live time remaining and a direct 'STOP STREAM' control.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
+                        )
+                    }
+
+                    // Section 6: Stream Key & Credential Security
+                    PolicySection(
+                        title = "6. Stream Keys & On-Device Security",
                         icon = Icons.Default.Security
                     ) {
                         Text(
@@ -256,14 +306,14 @@ fun PrivacyPolicyDialog(
                         )
                     }
 
-                    // Section 5: Data Retention & User Controls
+                    // Section 7: Data Retention, Deletion & User Controls
                     PolicySection(
-                        title = "5. Data Retention & Deletion",
+                        title = "7. Data Retention & Deletion",
                         icon = Icons.Default.DeleteOutline
                     ) {
                         Text(
-                            text = "• All data (video references, stream keys, and streaming time balances) is stored purely locally on your device.\n\n" +
-                                    "• You may clear all saved credentials and reset local state at any time using the button below or by clearing app data in Android System Settings.",
+                            text = "• All data (video URI references, stream keys, and streaming time balances) is stored purely locally on your device.\n\n" +
+                                    "• Because no cloud accounts or server databases exist, you can delete all stored data instantly using the button below or by clearing app data in Android System Settings.",
                             style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -281,16 +331,28 @@ fun PrivacyPolicyDialog(
                         }
                     }
 
-                    // Section 6: Contact & Inquiries
+                    // Section 8: Children's Privacy
                     PolicySection(
-                        title = "6. Developer Contact",
+                        title = "8. Children's Privacy",
                         icon = Icons.Default.Policy
                     ) {
                         Text(
-                            text = "For privacy questions, policy inquiries, or support:\n" +
-                                    "Developer: 24/7 Streamer Team\n" +
-                                    "Contact Email: appmalume@gmail.com\n" +
-                                    "Effective Date: September 2026",
+                            text = "24/7 Streamer is designed for general audiences and content broadcasters. It is not intended for or directed to children under 13 years of age (or under 16 in the European Economic Area). We do not knowingly collect personal information from children.",
+                            style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
+                        )
+                    }
+
+                    // Section 9: Policy Changes & Contact
+                    PolicySection(
+                        title = "9. Policy Updates & Contact",
+                        icon = Icons.Default.Info
+                    ) {
+                        Text(
+                            text = "We may update this Privacy Policy periodically. Any revisions will be reflected inside the application and at the public policy URL below.\n\n" +
+                                    "• Developer: 24/7 Streamer Team\n" +
+                                    "• Email: appmalume@gmail.com\n" +
+                                    "• Public URL: https://natty30.github.io/24streamer/privacy-policy.html\n" +
+                                    "• Effective Date: September 2026",
                             style = MaterialTheme.typography.bodySmall.copy(color = StreamTextSecondary, lineHeight = 16.sp)
                         )
                     }

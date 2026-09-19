@@ -119,8 +119,10 @@ class RewardedAdManager(private val context: Context) {
 
         ad.show(activity) { _ ->
             // Official Google AdMob callback: Called strictly when user watches required ad duration
-            rewardGranted = true
-            onUserEarnedReward(30L)
+            if (!rewardGranted) {
+                rewardGranted = true
+                onUserEarnedReward(30L)
+            }
         }
     }
 }

@@ -52,7 +52,6 @@ data class StreamUiState(
     val metrics: StreamMetrics = StreamMetrics(),
     val activeInfo: ActiveStreamInfo = ActiveStreamInfo(),
     val validationError: String? = null,
-    val isBatteryOptimized: Boolean = false,
     val availableStreamingTimeSec: Long = 0L,
     val isAdLoading: Boolean = false,
     val isAdReady: Boolean = false,
@@ -110,7 +109,6 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
     )
 
     init {
-        checkBatteryOptimization()
         viewModelScope.launch {
             rewardedAdManager.isAdLoaded.collect { loaded ->
                 _uiState.value = _uiState.value.copy(isAdReady = loaded)
@@ -121,14 +119,6 @@ class StreamViewModel(application: Application) : AndroidViewModel(application) 
                 _uiState.value = _uiState.value.copy(isAdLoading = loading)
             }
         }
-    }
-
-    fun checkBatteryOptimization() {
-        try {
-            val powerManager = getApplication<Application>().getSystemService(Context.POWER_SERVICE) as? PowerManager
-            val isIgnoring = powerManager?.isIgnoringBatteryOptimizations(getApplication<Application>().packageName) ?: true
-            _uiState.value = _uiState.value.copy(isBatteryOptimized = !isIgnoring)
-        } catch (_: Exception) {}
     }
 
     fun onVideoSelected(uri: Uri) {

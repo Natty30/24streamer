@@ -6,7 +6,6 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -39,7 +38,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryAlert
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Info
@@ -123,7 +121,8 @@ import com.example.ui.theme.StreamTextSecondary
 fun StreamScreen(
     viewModel: StreamViewModel,
     consentManager: ConsentManager,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    canRequestAds: Boolean = true
 ) {
     val context = LocalContext.current
     val activity = context.findActivity()
@@ -176,7 +175,8 @@ fun StreamScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, StreamDarkCardBorder)
             ) {
                 BannerAdView(
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    canRequestAds = canRequestAds
                 )
             }
         },
@@ -340,12 +340,7 @@ fun StreamScreen(
                 onRememberToggle = { viewModel.onRememberCredentialsToggled(it) }
             )
 
-            // 6. Battery Optimization Notice (if needed)
-            if (uiState.isBatteryOptimized) {
-                BatteryOptimizationCard(context = context)
-            }
-
-            // 7. Large Action Controls (Start / Stop)
+            // 6. Large Action Controls (Start / Stop)
             StreamControlButtons(
                 isStreaming = isStreaming,
                 canStartStream = uiState.availableStreamingTimeSec > 0,
@@ -993,52 +988,6 @@ fun OptionSwitchRow(
                 uncheckedTrackColor = StreamDarkSurfaceVariant
             )
         )
-    }
-}
-
-@Composable
-fun BatteryOptimizationCard(context: android.content.Context) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = StreamDarkSurfaceVariant),
-        border = androidx.compose.foundation.BorderStroke(1.dp, StreamAmber.copy(alpha = 0.5f))
-    ) {
-        Row(
-            modifier = Modifier.padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.BatteryAlert,
-                contentDescription = null,
-                tint = StreamAmber,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Background Streaming",
-                    color = StreamTextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
-                )
-                Text(
-                    text = "For uninterrupted 24/7 streaming, grant unrestricted battery permission.",
-                    color = StreamTextSecondary,
-                    fontSize = 11.sp
-                )
-            }
-            TextButton(
-                onClick = {
-                    try {
-                        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                        context.startActivity(intent)
-                    } catch (_: Exception) {}
-                }
-            ) {
-                Text("SETTINGS", color = StreamAmber, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-            }
-        }
     }
 }
 
